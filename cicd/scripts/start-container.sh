@@ -2,24 +2,29 @@
 set -e
 
 AWS_REGION=ap-south-1
-AWS_ACCOUNT_ID=785186659004   # <-- your account id
+AWS_ACCOUNT_ID=785186659004
 ECR_REPO=backend
 CONTAINER_NAME=backend
 
-# CodeDeploy exposes deployment ID, not build number
-# But CodePipeline passes the build number via revision
-IMAGE_TAG=$(cat /opt/codedeploy-agent/deployment-root/deployment-instructions/* | grep -o '[0-9]\+' | head -1)
+# Move to deployment root (important for artifacts)
+cd "$(dirname "$0")/../.."
+
+# Load image tag from CodeBuild artifact
+source image.env
 
 IMAGE_URI=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO:$IMAGE_TAG
 
 echo "Starting backend container with image: $IMAGE_URI"
 
+# Stop and remove old container if exists
 docker stop $CONTAINER_NAME || true
 docker rm $CONTAINER_NAME || true
 
+# Login to ECR
 aws ecr get-login-password --region $AWS_REGION | \
 docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
 
+# Pull and run new image
 docker pull $IMAGE_URI
 
 docker run -d \
