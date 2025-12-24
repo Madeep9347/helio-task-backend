@@ -1,6 +1,7 @@
 version: 0.2
 
 env:
+  shell: bash
   variables:
     AWS_REGION: ap-south-1
     ECR_REPO: backend
@@ -26,9 +27,12 @@ phases:
       - printf '[{"name":"backend","imageUri":"%s"}]' \
         $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO:$IMAGE_TAG \
         > imagedef-backend.json
+      - echo "Artifacts in root:"
+      - ls -l .
 
 artifacts:
+  discard-paths: yes
   files:
     - appspec.yml
-    - cicd/scripts/**/*
     - imagedef-backend.json
+    - cicd/scripts/**/*
