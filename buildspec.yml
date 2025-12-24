@@ -23,9 +23,10 @@ phases:
     commands:
       - echo "Pushing backend image..."
       - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO:$IMAGE_TAG
-      - printf '[{"name":"backend","imageUri":"%s"}]' \
-        $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO:$IMAGE_TAG \
-        > imagedef-backend.json
+      - IMAGE_URI=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO:$IMAGE_TAG
+      - echo "Creating imagedef-backend.json with $IMAGE_URI"
+      - printf '[{"name":"backend","imageUri":"%s"}]' "$IMAGE_URI" > imagedef-backend.json
+      - cat imagedef-backend.json
 
 artifacts:
   files:
