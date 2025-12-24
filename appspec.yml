@@ -3,16 +3,16 @@ os: linux
 
 hooks:
   ApplicationStop:
-    - location: stop-container.sh
+    - location: cicd/scripts/stop-container.sh
       timeout: 300
       runas: root
 
   BeforeInstall:
-    - location: stop-container.sh
+    - location: cicd/scripts/stop-container.sh
       timeout: 300
       runas: root
 
   ApplicationStart:
-    - location: start-container.sh
+    - location: cicd/scripts/start-container.sh
       timeout: 300
       runas: root
