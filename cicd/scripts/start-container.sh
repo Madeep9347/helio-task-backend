@@ -4,17 +4,20 @@ set -e
 AWS_REGION=ap-south-1
 CONTAINER_NAME=backend
 
-AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-IMAGE_URI=$(cat imagedef-backend.json | jq -r '.[0].imageUri')
+echo "Loading image URI..."
+source image.env
 
 echo "Starting backend container with image: $IMAGE_URI"
 
+# Stop old container if exists
 docker stop $CONTAINER_NAME || true
 docker rm $CONTAINER_NAME || true
 
+# Login to ECR
 aws ecr get-login-password --region $AWS_REGION | \
-docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+docker login --username AWS --password-stdin "${IMAGE_URI%%/*}"
 
+# Pull and run new image
 docker pull $IMAGE_URI
 
 docker run -d \
