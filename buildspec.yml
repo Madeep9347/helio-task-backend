@@ -1,7 +1,6 @@
 version: 0.2
 
 env:
-  shell: bash
   variables:
     AWS_REGION: ap-south-1
     ECR_REPO: backend
@@ -13,7 +12,6 @@ phases:
       - AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
       - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
       - IMAGE_TAG=$CODEBUILD_BUILD_NUMBER
-      - echo "Image tag: $IMAGE_TAG"
 
   build:
     commands:
@@ -23,16 +21,14 @@ phases:
 
   post_build:
     commands:
-      - echo "Pushing backend image to ECR..."
+      - echo "Pushing backend image..."
       - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO:$IMAGE_TAG
-      - echo "Creating image.env for CodeDeploy..."
-      - echo "IMAGE_URI=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO:$IMAGE_TAG" > image.env
-      - echo "Artifacts in root:"
-      - ls -l .
+      - printf '[{"name":"backend","imageUri":"%s"}]' \
+        $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO:$IMAGE_TAG \
+        > imagedef-backend.json
 
 artifacts:
-  discard-paths: yes
   files:
     - appspec.yml
-    - image.env
-    - cicd/scripts/*.sh
+    - cicd/scripts/**/*
+    - imagedef-backend.json
